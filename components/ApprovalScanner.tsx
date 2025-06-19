@@ -289,7 +289,7 @@ export default function ApprovalScanner (){
   return (
     <div className="p-2 sm:p-4 min-h-screen w-full border border-neutral-700 rounded-lg" style={{ background: '#000', color: '#fff' }}>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl sm:text-3xl font-bold">ERC-20 & ERC-721 Approval Logs</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">ERC-20 & ERC-721 Approvals</h1>
         <button
           className="ml-2 p-1 rounded-full hover:bg-neutral-800 focus:outline-none"
           aria-label="Info"

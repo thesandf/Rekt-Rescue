@@ -1,167 +1,110 @@
 # RektRescue Documentation
 
-## Overview
+## 🔍 Overview
 
-**RektRescue** is a DeFi recovery and batch transaction tool designed to help users recover from common mistakes like:
+**RektRescue** is a DeFi safety tool built to help users detect and revoke risky token approvals and clean up dust tokens. It focuses on improving wallet hygiene by:
 
-* Stuck tokens
-* Over-borrowed positions
-* Excessive token approvals
-* Forgotten dust assets
-
-It enables users to diagnose and resolve issues across multiple DeFi protocols (Aave, Compound, Uniswap) in one unified interface using a single batched transaction powered by EIP-5792, EIP-3074, and EIP-4337.
+* Scanning **ERC-20** and **ERC-721** approvals
+* Highlighting dangerous or outdated approvals
+* Enabling one-click **Revoke** actions
+* Identifying small or "dust" balances for cleanup
 
 ---
 
-## Objectives
+## 🎯 Objectives
 
-* Scan wallet for potential risks
-* Analyze token approvals, debt positions, unused balances
-* Let user plan corrective actions
-* Build and simulate batched transactions
-* Execute fixes with a single signature using `wallet_sendCalls`
+* Detect all approval events for ERC-20 and ERC-721 tokens
+* Display clear, actionable data:
 
----
-
-## Tech Stack
-
-* **Frontend**: Next.js, TailwindCSS, ShadCN UI, TypeScript
-* **Wallet Integration**: Viem with EIP-5792
-* **Smart Contracts**: Solidity (RektRescueHelper.sol)
-* **Backends (optional)**: Risk analyzer APIs, simulation tools
+  * Block
+  * TxHash
+  * Event (Approval / ApprovalForAll)
+  * Token
+  * Owner
+  * Spender
+  * Amount / Token ID
+* Allow users to revoke approvals easily
+* Identify and surface low-value (dust) tokens in the wallet
 
 ---
 
-## Supported Standards
+## 🧰 Tech Stack
 
-* **EIP-5792**: `wallet_sendCalls` — batched wallet execution
-* **EIP-3074**: Delegated calls from EOAs
-* **EIP-4337**: Account abstraction for SCWs
-
----
-
-## Architecture Diagram
-
-
-
+* **Frontend**: Next.js, TypeScript, Tailwind CSS, ShadCN UI
+* **Wallet Integration**: Viem, WalletConnect
+* **Blockchain Interaction**: Viem for log scanning and transaction calls
 
 ---
 
-## User Flow
+## 🔐 Supported Standards
 
-1. **Scan**: App detects risks in Aave, Compound, Uniswap, token approvals
-2. **Plan**: User selects recovery actions (revoke, swap, repay, withdraw)
-3. **Simulate**: Batch is simulated for gas and success
-4. **Sign**: User signs batch using EIP-5792-enabled wallet
-5. **Execute**: Transaction is sent to Invoker or Bundler (depending on wallet type)
+* **ERC-20**: `Approval` event, `approve(spender, 0)`
+* **ERC-721**: `Approval` and `ApprovalForAll` events, `setApprovalForAll(spender, false)`
 
 ---
 
-## Key Components
+## 📊 UI Components
 
-### 1. Recovery UI
+### 🔗 Token Approval Scanner
 
-* Displays risks and balances
-* Lets users choose recovery actions (e.g., revoke, swap, repay)
+Scans the blockchain for recent approval events related to the connected wallet and displays them in a table:
 
-### 2. Protocol Scanner
+| Block    | TxHash      | Event                 | Token | Owner      | Spender         | Amount / TokenId | Revoke    |
+| -------- | ----------- | --------------------- | ----- | ---------- | --------------- | ---------------- | --------- |
+| 19743812 | 0xabc...123 | ERC20 Approval        | USDC  | 0xMe...123 | 0xSpender...456 | MaxUint256       | 🔘 Revoke |
+| 19743845 | 0xdef...456 | ERC721 ApprovalForAll | BAYC  | 0xMe...123 | 0xSpender...789 | true             | 🔘 Revoke |
 
-* Reads on-chain data from:
+> Clicking **Revoke**:
 
-  * Aave (positions, debt)
-  * Compound
-  * Uniswap pools
-  * ERC20 allowances
-
-### 3. Risk Analyzer
-
-* Detects:
-
-  * Dangerous approvals
-  * Collateral vs borrow ratios
-  * Liquidation risks
-  * Dust tokens
-
-### 4. Batch Builder
-
-* Builds an array of transaction calls
-* Prepares for `wallet_sendCalls`
-* Encodes calls to helper contract and targets
-
-### 5. Gas Simulator
-
-* Estimates cost
-* Pre-checks success/failure
-
-### 6. RektRescueHelper.sol (Contract)
-
-* Encodes all possible recovery operations
-* Only executable via safe batch call
-* Verifies permissions and limits
+* For ERC-20: calls `approve(spender, 0)`
+* For ERC-721: calls `setApprovalForAll(spender, false)`
 
 ---
 
-## Smart Contract Sketch: RektRescueHelper.sol
+### 🧹 Dust Token Scanner
 
-```solidity
-contract RektRescueHelper {
-    function swap(address router, address tokenIn, address tokenOut, uint256 amountIn, uint256 minOut) external;
-    function repayAave(address pool, address asset, uint256 amount) external;
-    function withdrawAave(address pool, address asset, uint256 amount) external;
-    function revokeApproval(address token, address spender) external;
-    function claimDust(address token) external;
-}
-```
+Identifies tokens in the wallet with balances below a defined threshold (e.g., `< 0.01` tokens or `< $0.01` value):
 
----
+| Token | Balance | USD Value | Action  |
+| ----- | ------- | --------- | ------- |
+| DAI   | 0.0045  | \~\$0.004 | 🔘 Hide |
+| LINK  | 0.0021  | \~\$0.01  | 🔘 Hide |
 
-## Batch Example
-
-```js
-const calls = [
-  {
-    to: RektRescueHelperAddress,
-    data: encodeFunction("revokeApproval", [USDC, oldSpender])
-  },
-  {
-    to: RektRescueHelperAddress,
-    data: encodeFunction("repayAave", [aavePool, DAI, daiDebt])
-  }
-];
-
-await walletClient.sendCalls({ calls });
-```
+> This helps declutter wallets from negligible tokens and enhances UX on wallets and portfolio trackers.
 
 ---
 
-## Roadmap
+## 🚀 Roadmap
 
-* [x] Diagram & architecture
-* [x] UI prototype
-* [ ] Contract implementation
-* [ ] Testing batch safety
-* [ ] Launch MVP on testnet
-* [ ] Community feedback round
-* [ ] Submit to hackathons
-
----
-
-## Future Ideas
-
-* Auto liquidation protection
-* Email/SMS alerts for bad positions
-* DAO-integrated rescue calls
-* Integrate with AA wallets directly
+* ✅ ERC-20 Approval Detection
+* ✅ ERC-721 Approval & ApprovalForAll Scanner
+* ✅ One-click Revoke Support
+* ✅ Dust Token Display
+* 🔜 Token logos and labels in approval table
+* 🔜 Risk scoring for spender addresses
+* 🔜 Mobile layout and PWA support
 
 ---
 
-## Credits
+## 💡 Future Enhancements
 
-* Inspired by TxFusion, 1inch revoke tool, and real user pain
-* Built with passion for DeFi safety
+* 🛡️ Spender risk classification (e.g., flagged by security firms)
+* 📬 Notifications for dangerous approvals
+* 🔍 Multi-chain support: Ethereum, Arbitrum, Polygon, BNB, Base
+* 🧠 AI-powered spender reputation insights
 
 ---
 
-## Contact
+## 🙌 Credits
 
-You can reach the creator of RektRescue for feedback or collaboration on [GitHub](https://github.com/thesandf), [Twitter],[X](https://x.com/THE_SANDF),.
+* Inspired by **Revoke.cash**, **TxFusion**, and real-world user issues
+* Built to empower users with better control over their wallets
+
+---
+
+## 📬 Contact
+
+* **GitHub**: [thesandf](https://github.com/thesandf)
+* **Twitter/X**: [@THE\_SANDF](https://x.com/THE_SANDF)
+
+---
