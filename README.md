@@ -20,7 +20,7 @@
   * Block
   * TxHash
   * Event (Approval / ApprovalForAll)
-  * Token
+  * Token ERC-20 and ERC-721
   * Owner
   * Spender
   * Amount / Token ID
