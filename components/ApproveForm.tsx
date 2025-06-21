@@ -96,7 +96,7 @@ export default function ApproveForm() {
         account: address,
       });
 
-      setStatus(`✅ Tx sent on chain ${chainId}: ${txHash.slice(0, 10)}...`);
+      setStatus(` Tx sent on chain ${chainId}: ${txHash.slice(0, 10)}...`);
     } catch (err: unknown) {
       const errorMessage = (err as Error)?.message || "Failed";
       setStatus("❌ Error: " + errorMessage);

@@ -10,5 +10,6 @@ export const officialSpenderContracts: { [name: string]: string } = {
     CurveFi: "0xD533a949740bb3306d119CC777fa900bA034cd52",
     BalancerV2Vault: "0xba12222222228d8ba445958a75a0704d566bf2c8",
     MakerDAO: "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
+    MyFriend :"0xE9298D5896CC430ED94069f1d18257C523C402b5"
     // Add more official spender contracts below 
 };
